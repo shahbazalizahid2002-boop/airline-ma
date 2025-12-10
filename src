@@ -1,0 +1,507 @@
+#include <iostream>
+#include <string>
+#include <queue>
+#include <stack>
+#include <algorithm>
+using namespace std;
+
+// ========== FEATURE 1: Linked List for Flights and Clients ==========
+struct Flight {
+    string flightNumber;
+    string destination;
+    string aircraftType;
+    int departureTime;
+    int duration;
+    int seatsAvailable;
+    Flight* next;
+};
+
+struct Client {
+    string name;
+    string flightNumber;
+    string ticketClass;
+    Client* next;
+};
+
+// ========== FEATURE 2: Queue for Flight Departures ==========
+class DepartureQueue {
+private:
+    struct Departure {
+        string flightNumber;
+        string destination;
+        int departureTime;
+    };
+    queue<Departure> departureQueue;
+    
+public:
+    void scheduleDeparture(string flightNum, string dest, int time) {
+        Departure d;
+        d.flightNumber = flightNum;
+        d.destination = dest;
+        d.departureTime = time;
+        departureQueue.push(d);
+        cout << "Flight " << flightNum << " added to departure queue.\n";
+    }
+    
+    void processNextDeparture() {
+        if (departureQueue.empty()) {
+            cout << "No flights in departure queue.\n";
+            return;
+        }
+        Departure d = departureQueue.front();
+        cout << "DEPARTING NOW: Flight " << d.flightNumber 
+             << " to " << d.destination 
+             << " at " << d.departureTime << endl;
+        departureQueue.pop();
+    }
+    
+    void showDepartureQueue() {
+        if (departureQueue.empty()) {
+            cout << "Departure queue is empty.\n";
+            return;
+        }
+        cout << "\n=== DEPARTURE QUEUE (FIFO) ===\n";
+        queue<Departure> temp = departureQueue;
+        int count = 1;
+        while (!temp.empty()) {
+            Departure d = temp.front();
+            cout << count++ << ". Flight " << d.flightNumber 
+                 << " to " << d.destination 
+                 << " (Time: " << d.departureTime << ")\n";
+            temp.pop();
+        }
+    }
+};
+
+// ========== FEATURE 3: Stack for Client History ==========
+class ClientHistoryStack {
+private:
+    struct History {
+        string clientName;
+        string action;
+        string flightNumber;
+        string timestamp;
+    };
+    stack<History> historyStack;
+    
+public:
+    void addHistory(string name, string action, string flightNum) {
+        History h;
+        h.clientName = name;
+        h.action = action;
+        h.flightNumber = flightNum;
+        h.timestamp = "12:00"; // Simplified timestamp
+        historyStack.push(h);
+    }
+    
+    void showRecentHistory() {
+        if (historyStack.empty()) {
+            cout << "No history available.\n";
+            return;
+        }
+        cout << "\n=== RECENT CLIENT HISTORY (LIFO) ===\n";
+        stack<History> temp = historyStack;
+        int count = 1;
+        while (!temp.empty() && count <= 5) {
+            History h = temp.top();
+            cout << count++ << ". " << h.timestamp << " - " 
+                 << h.clientName << " " << h.action 
+                 << " Flight " << h.flightNumber << endl;
+            temp.pop();
+        }
+    }
+    
+    void undoLastAction() {
+        if (historyStack.empty()) {
+            cout << "No actions to undo.\n";
+            return;
+        }
+        History h = historyStack.top();
+        cout << "UNDO: " << h.clientName << " " << h.action 
+             << " Flight " << h.flightNumber << endl;
+        historyStack.pop();
+    }
+};
+
+// ========== MAIN AIRLINES MANAGEMENT CLASS ==========
+class AirlinesManagement {
+private:
+    Flight* flightHead;
+    Client* clientHead;
+    DepartureQueue departureQueue;
+    ClientHistoryStack historyStack;
+    
+public:
+    AirlinesManagement() : flightHead(NULL), clientHead(NULL) {}
+    
+    // 1. ADD operation for flights
+    void addFlight(string flightNum, string dest, string aircraft, 
+                   int depTime, int duration, int seats) {
+        Flight* newFlight = new Flight();
+        newFlight->flightNumber = flightNum;
+        newFlight->destination = dest;
+        newFlight->aircraftType = aircraft;
+        newFlight->departureTime = depTime;
+        newFlight->duration = duration;
+        newFlight->seatsAvailable = seats;
+        newFlight->next = NULL;
+        
+        // Search if flight already exists
+        Flight* existing = searchFlightByNumber(flightNum);
+        if (existing) {
+            cout << "Error: Flight " << flightNum << " already exists!\n";
+            delete newFlight;
+            return;
+        }
+        
+        if (!flightHead) {
+            flightHead = newFlight;
+        } else {
+            Flight* temp = flightHead;
+            while (temp->next) {
+                temp = temp->next;
+            }
+            temp->next = newFlight;
+        }
+        departureQueue.scheduleDeparture(flightNum, dest, depTime);
+        cout << "✓ Flight " << flightNum << " added successfully.\n";
+    }
+    
+    // 2. DELETE operation for flights
+    bool deleteFlight(string flightNum) {
+        if (!flightHead) return false;
+        
+        if (flightHead->flightNumber == flightNum) {
+            Flight* temp = flightHead;
+            flightHead = flightHead->next;
+            cout << "Flight " << flightNum << " deleted.\n";
+            delete temp;
+            return true;
+        }
+        
+        Flight* current = flightHead;
+        while (current->next) {
+            if (current->next->flightNumber == flightNum) {
+                Flight* temp = current->next;
+                current->next = temp->next;
+                cout << "Flight " << flightNum << " deleted.\n";
+                delete temp;
+                return true;
+            }
+            current = current->next;
+        }
+        cout << "Flight " << flightNum << " not found for deletion.\n";
+        return false;
+    }
+    
+    // 3. SEARCH operation for flights
+    Flight* searchFlightByNumber(string flightNum) {
+        Flight* temp = flightHead;
+        while (temp) {
+            if (temp->flightNumber == flightNum) {
+                return temp;
+            }
+            temp = temp->next;
+        }
+        return NULL;
+    }
+    
+    // 4. SEARCH operation for clients
+    Client* searchClientByName(string name) {
+        Client* temp = clientHead;
+        while (temp) {
+            if (temp->name == name) {
+                return temp;
+            }
+            temp = temp->next;
+        }
+        return NULL;
+    }
+    
+    // 5. REGISTER client for flight
+    void registerClient(string name, string flightNum, string ticketClass) {
+        Flight* flight = searchFlightByNumber(flightNum);
+        if (!flight) {
+            cout << "✗ Flight " << flightNum << " does not exist.\n";
+            return;
+        }
+        
+        if (flight->seatsAvailable <= 0) {
+            cout << "✗ No seats available on Flight " << flightNum << ".\n";
+            return;
+        }
+        
+        Client* newClient = new Client();
+        newClient->name = name;
+        newClient->flightNumber = flightNum;
+        newClient->ticketClass = ticketClass;
+        newClient->next = NULL;
+        
+        flight->seatsAvailable--;
+        
+        if (!clientHead) {
+            clientHead = newClient;
+        } else {
+            Client* temp = clientHead;
+            while (temp->next) {
+                temp = temp->next;
+            }
+            temp->next = newClient;
+        }
+        
+        historyStack.addHistory(name, "registered for", flightNum);
+        cout << "✓ Client " << name << " registered for flight " 
+             << flightNum << " (" << ticketClass << ").\n";
+        cout << "  Seats remaining: " << flight->seatsAvailable << endl;
+    }
+    
+    // 6. CANCEL client registration
+    bool cancelRegistration(string name, string flightNum) {
+        if (!clientHead) return false;
+        
+        if (clientHead->name == name && clientHead->flightNumber == flightNum) {
+            Client* temp = clientHead;
+            clientHead = clientHead->next;
+            
+            // Increase available seats
+            Flight* flight = searchFlightByNumber(flightNum);
+            if (flight) flight->seatsAvailable++;
+            
+            historyStack.addHistory(name, "cancelled", flightNum);
+            cout << "Registration cancelled for " << name << " on Flight " << flightNum << endl;
+            delete temp;
+            return true;
+        }
+        
+        Client* current = clientHead;
+        while (current->next) {
+            if (current->next->name == name && 
+                current->next->flightNumber == flightNum) {
+                Client* temp = current->next;
+                current->next = temp->next;
+                
+                // Increase available seats
+                Flight* flight = searchFlightByNumber(flightNum);
+                if (flight) flight->seatsAvailable++;
+                
+                historyStack.addHistory(name, "cancelled", flightNum);
+                cout << "Registration cancelled for " << name << " on Flight " << flightNum << endl;
+                delete temp;
+                return true;
+            }
+            current = current->next;
+        }
+        cout << "Registration not found for " << name << " on Flight " << flightNum << endl;
+        return false;
+    }
+    
+    // DISPLAY functions
+    void displayFlights() {
+        if (!flightHead) {
+            cout << "No flights available.\n";
+            return;
+        }
+        
+        cout << "\n=== ALL FLIGHTS (Linked List) ===\n";
+        Flight* temp = flightHead;
+        int count = 1;
+        while (temp) {
+            cout << count++ << ". Flight: " << temp->flightNumber 
+                 << "\n   Destination: " << temp->destination
+                 << "\n   Aircraft: " << temp->aircraftType 
+                 << "\n   Departure: " << temp->departureTime 
+                 << "\n   Duration: " << temp->duration << " mins"
+                 << "\n   Seats: " << temp->seatsAvailable << " available\n\n";
+            temp = temp->next;
+        }
+    }
+    
+    void displayClients() {
+        if (!clientHead) {
+            cout << "No clients registered.\n";
+            return;
+        }
+        
+        cout << "\n=== REGISTERED CLIENTS (Linked List) ===\n";
+        Client* temp = clientHead;
+        int count = 1;
+        while (temp) {
+            cout << count++ << ". Client: " << temp->name 
+                 << "\n   Flight: " << temp->flightNumber
+                 << "\n   Class: " << temp->ticketClass << "\n\n";
+            temp = temp->next;
+        }
+    }
+    
+    // Queue operations
+    void showDepartureQueue() {
+        departureQueue.showDepartureQueue();
+    }
+    
+    void processDeparture() {
+        departureQueue.processNextDeparture();
+    }
+    
+    // Stack operations
+    void showClientHistory() {
+        historyStack.showRecentHistory();
+    }
+    
+    void undoLastClientAction() {
+        historyStack.undoLastAction();
+    }
+    
+    // Menu
+    void showMenu() {
+        cout << "\n✈️ AIRLINES MANAGEMENT SYSTEM ✈️\n";
+        cout << "1. Add Flight\n";
+        cout << "2. Delete Flight\n";
+        cout << "3. Search Flight\n";
+        cout << "4. Register Client\n";
+        cout << "5. Cancel Registration\n";
+        cout << "6. Search Client\n";
+        cout << "7. Display All Flights\n";
+        cout << "8. Display All Clients\n";
+        cout << "9. Show Departure Queue\n";
+        cout << "10. Process Next Departure\n";
+        cout << "11. Show Client History\n";
+        cout << "12. Undo Last Action\n";
+        cout << "13. Exit\n";
+        cout << "Choose an option (1-13): ";
+    }
+};
+
+int main() {
+    AirlinesManagement system;
+    int choice;
+    
+    // Add sample flights
+    system.addFlight("FL101", "New York", "Boeing 737", 830, 360, 150);
+    system.addFlight("FL202", "London", "Airbus A320", 1430, 420, 120);
+    system.addFlight("FL303", "Tokyo", "Boeing 787", 2230, 780, 180);
+    
+    // Register sample clients
+    system.registerClient("John Doe", "FL101", "Business");
+    system.registerClient("Jane Smith", "FL202", "Economy");
+    system.registerClient("Bob Wilson", "FL101", "First");
+    
+    do {
+        system.showMenu();
+        cin >> choice;
+        cin.ignore();
+        
+        switch(choice) {
+            case 1: {
+                string flightNum, dest, aircraft;
+                int depTime, duration, seats;
+                
+                cout << "Enter Flight Number: ";
+                getline(cin, flightNum);
+                cout << "Enter Destination: ";
+                getline(cin, dest);
+                cout << "Enter Aircraft Type: ";
+                getline(cin, aircraft);
+                cout << "Enter Departure Time (e.g., 830 for 8:30): ";
+                cin >> depTime;
+                cout << "Enter Duration (minutes): ";
+                cin >> duration;
+                cout << "Enter Available Seats: ";
+                cin >> seats;
+                
+                system.addFlight(flightNum, dest, aircraft, depTime, duration, seats);
+                break;
+            }
+            case 2: {
+                string flightNum;
+                cout << "Enter Flight Number to delete: ";
+                getline(cin, flightNum);
+                system.deleteFlight(flightNum);
+                break;
+            }
+            case 3: {
+                string flightNum;
+                cout << "Enter Flight Number to search: ";
+                getline(cin, flightNum);
+                Flight* flight = system.searchFlightByNumber(flightNum);
+                if (flight) {
+                    cout << "✓ Flight Found!\n";
+                    cout << "Destination: " << flight->destination << endl;
+                    cout << "Aircraft: " << flight->aircraftType << endl;
+                    cout << "Departure: " << flight->departureTime << endl;
+                    cout << "Seats: " << flight->seatsAvailable << " available\n";
+                } else {
+                    cout << "✗ Flight not found.\n";
+                }
+                break;
+            }
+            case 4: {
+                string name, flightNum, ticketClass;
+                
+                cout << "Enter Client Name: ";
+                getline(cin, name);
+                cout << "Enter Flight Number: ";
+                getline(cin, flightNum);
+                cout << "Enter Ticket Class: ";
+                getline(cin, ticketClass);
+                
+                system.registerClient(name, flightNum, ticketClass);
+                break;
+            }
+            case 5: {
+                string name, flightNum;
+                
+                cout << "Enter Client Name: ";
+                getline(cin, name);
+                cout << "Enter Flight Number: ";
+                getline(cin, flightNum);
+                
+                system.cancelRegistration(name, flightNum);
+                break;
+            }
+            case 6: {
+                string name;
+                cout << "Enter Client Name to search: ";
+                getline(cin, name);
+                Client* client = system.searchClientByName(name);
+                if (client) {
+                    cout << "✓ Client Found!\n";
+                    cout << "Flight: " << client->flightNumber << endl;
+                    cout << "Class: " << client->ticketClass << endl;
+                } else {
+                    cout << "✗ Client not found.\n";
+                }
+                break;
+            }
+            case 7:
+                system.displayFlights();
+                break;
+            case 8:
+                system.displayClients();
+                break;
+            case 9:
+                system.showDepartureQueue();
+                break;
+            case 10:
+                system.processDeparture();
+                break;
+            case 11:
+                system.showClientHistory();
+                break;
+            case 12:
+                system.undoLastClientAction();
+                break;
+            case 13:
+                cout << "Thank you for using Airlines Management System!\n";
+                break;
+            default:
+                cout << "Invalid choice! Please try again.\n";
+        }
+        
+        if (choice != 13) {
+            cout << "\nPress Enter to continue...";
+            cin.get();
+        }
+    } while (choice != 13);
+    
+    return 0;
+}
