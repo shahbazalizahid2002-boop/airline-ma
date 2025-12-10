@@ -1,0 +1,12 @@
+# Kaizen Improvement Review
+## Airlines Management System - Week 3
+
+| What was Built | Problem/Limitation Found | Improvement Idea | Team Member Responsible | Expected Impact |
+|----------------|--------------------------|------------------|-------------------------|-----------------|
+| Flight Linked List | Manual traversal needed for search | Implement hash table for O(1) flight lookup | Solo Student | Reduce search time from O(n) to O(1) |
+| Departure Queue | Queue displays all items when large | Add pagination (show next 10 departures) | Solo Student | Better user experience with large datasets |
+| Client History Stack | No persistent storage | Save history to file on exit | Solo Student | Data persistence between program runs |
+| Seat Management | No seat selection/assignment | Add seat map with row/column selection | Solo Student | Realistic airline booking system |
+| Input Validation | No validation for time format | Add regex validation for HHMM format | Solo Student | Prevent incorrect data entry |
+| Memory Management | Memory leaks on delete | Implement destructor to clean all nodes | Solo Student | Prevent memory leaks |
+| User Interface | Text-only interface | Add color coding for different message types | Solo Student | Improved readability |
