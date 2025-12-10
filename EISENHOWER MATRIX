@@ -1,0 +1,28 @@
+# Eisenhower Matrix - Airlines Management System
+
+## Urgent + Important (Do First)
+1. Fix memory leak in deleteFlight() function
+2. Add input validation for duplicate flight numbers
+3. Implement error handling for file operations
+4. Complete core testing before deadline
+
+## Important + Not Urgent (Schedule)
+1. Implement flight sorting by departure time
+2. Add search by destination feature
+3. Create graphical user interface
+4. Implement data persistence to files
+5. Add flight delay/cancellation handling
+
+## Urgent + Not Important (Delegate)
+1. Update documentation comments
+2. Create user manual
+3. Format code to style guide
+4. Prepare presentation slides
+5. Organize test data files
+
+## Not Urgent + Not Important (Eliminate)
+1. Add sound effects for notifications
+2. Implement complex animation effects
+3. Create multiple color schemes
+4. Add social media sharing feature
+5. Implement voice command interface
